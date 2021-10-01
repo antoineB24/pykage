@@ -18,13 +18,18 @@ def validate(label, function, status, initial_value):
         initial user input
 
     -----------------------------------
-    Return: int
+    Return: str
     -----------------------------------
     return the new one (initial_value if it has not changed)
 
     """
     value = initial_value
-    while not function(value):
+    is_optional = status == "optionel" or status == "default=1.0.0"
+    if is_optional:
+        bool_opt = lambda v: v != ''
+    else:
+        bool_opt = lambda v: True
+    while not function(value) and bool_opt(value):
         print(f"{label} not valid")
         value = input(f"{label}({status}): ")
 

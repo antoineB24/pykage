@@ -18,7 +18,7 @@ from utils.regex import (
 )
 from utils.input_conf import validate
 
-def init_cmd():
+def init_cmd(path):
     print('pykg init... \n')
     print('configuration : \n\n ')
 
@@ -35,10 +35,8 @@ def init_cmd():
     name_project = validate(
         'you project name',
         lambda v: (
-            (v != '') and
-            (not v[0].isdigit()) and
-            (all([i in 'azertyuiopqsdfghjklmwxcvbn1234567890' for i in v]))
-            ),
+            bool(v) and not v[0].isdigit() 
+        ),
         'required',
         name_project
     )
@@ -65,30 +63,32 @@ def init_cmd():
 
     description = input("descriptions(optionel): ")
     git_repostery = input('git ripostery(optionel): ')
-    git_repostery = validate(
-        'git repostery',
-        lambda v: re.match(REGEX_GIT_PROJECT, v),
-        'optionel',
-        git_repostery
-    )
+    if git_repostery:
+        git_repostery = validate(
+            'git repostery',
+            lambda v: re.match(REGEX_GIT_PROJECT, v),
+            'optionel',
+            git_repostery
+        )
 
     contenue = f'''
-    AUTHOR = {author}
-    PKG_NAME = {name_project}
-    VERSION = {version}
-    EMAIL = {email}
-    MAIN_FILE = {main_file}
-    PACKAGE = []
-    DESCRIPTION = {description}
-    GIT_REPO = {git_repostery}
-    '''
+AUTHOR = '{author}'
+PKG_NAME = '{name_project}'
+VERSION = '{version}'
+EMAIL = '{email}'
+DEFAULT_FILE = '{main_file}'
+PACKAGE = []
+LIST_FILE = []
+DESCRIPTION = '{description}'
+GIT_REPO = '{git_repostery}'
+PWD = '{os.path.abspath(path)}'  '''
 
     print("\n\n")
     print(contenue)
-    if not input("is OK ? ").startwith('y'):
-        init_cmd()
+    if not input("is OK ? ").startswith('y'):
+        init_cmd(path)
     else:
-        os.system('touch pkg.py')
-    file = open('pkg.py', 'w')
+        os.system(f'touch {path}/pkg.py')
+    file = open(f'{path}/pkg.py', 'w')
     file.write(contenue)
     file.close()
