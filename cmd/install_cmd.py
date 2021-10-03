@@ -13,7 +13,7 @@ def install_cmd(path_pkg):
     except NameError:
         print("Error: the pkg.py is not valid")
     except AssertionError:
-        print("PACKAGE do is a string")
+        print("PACKAGE do is a list")
     else:
         install_packages(pkg.PACKAGE)
 

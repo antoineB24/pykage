@@ -1,9 +1,13 @@
 
 
 import sys
+import regex
+import re
 import subprocess
 import pkg_resources
 from pkg_resources import DistributionNotFound, VersionConflict
+from errors import InvalidFormatFile
+
 
 def should_install_requirement(requirement):
     should_install = False
@@ -28,3 +32,14 @@ def install_packages(requirement_list):
 
     except Exception as e:
         print(e)
+
+def get_exantension(file):
+
+    step = file.split('.')
+    if len(step) < 2:
+        return None
+
+    return '.'.join(step[1:len(step)])
+
+
+
