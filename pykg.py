@@ -1,6 +1,9 @@
+
+
 from cmd.init_cmd import init_cmd
 from cmd.install_cmd import install_cmd
-from utils.regex import *
+from cmd.install_args_cmd import install_args_cmd
+from utils.data import get_pkg_path
 import os
 import argparse
 import sys
@@ -37,14 +40,9 @@ elif args.cmd[0] == "init":
     path = args.cmd[1] if len(args.cmd) - 1 else os.getcwd()
     init_cmd(path)
 elif args.cmd[0] == "install" and len(args.cmd) == 1:
-    if os.path.exists(os.path.join(os.getcwd(), "pkg.py")):
-        pkg_path = os.getcwd()
-    else:
-        try:
-            os.environ["PKG_PATH"]
-        except KeyError:
-            print("define a var env PKG_PACK to the absolute path of pkg.py")
-            sys.exit(1)
-        else:
-            pkg_path = os.environ["PKG_PATH"]
+    pkg_path = get_pkg_path()
     install_cmd(pkg_path)
+
+elif args.cmd[0] == "install" and len(args.cmd) > 1:
+    pkg_path = get_pkg_path()
+    install_args_cmd(pkg_path, args.cmd[1:])

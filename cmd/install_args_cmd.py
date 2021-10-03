@@ -1,17 +1,18 @@
-from utils.system import install_packages # see pykg/utils/system.py
-from utils.type_help import Path, Vector, Any # see pykg/utils/type_help.py
+
 from utils.errors import PKGNotFound # pkg error when file pkg.py not found
-# import sys # for sys.path
+from utils.api import install_module, install_multiple_module
+import sys # for sys.path
 
 
-def install_args_cmd(path_pkg : Path, pkg_list : Vector) -> Any:
+
+def install_args_cmd(path_pkg, pkg_list):
     """
     install all the given packages and add the expenses to pkg.py
     --------------------------------------------------------------
-    path_pkg : Path
+    path_pkg : str
     the path of pkg.py
 
-    pkg_list : Vector
+    pkg_list : list
     the list of packages to be installed
     """
     
@@ -23,6 +24,8 @@ def install_args_cmd(path_pkg : Path, pkg_list : Vector) -> Any:
     else:
         print(body)
 
+    if len(pkg_list) > 1:
+        install_multiple_module('packagespy', *pkg_list)
+    else:
+        install_module(pkg_list[0], 'packagespy')
 
-
-    install_packages(pkg_list)

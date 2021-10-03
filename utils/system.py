@@ -1,12 +1,10 @@
-
-
 import sys
-import regex
-import re
 import subprocess
+import os
+import zipfile
+import tarfile
 import pkg_resources
 from pkg_resources import DistributionNotFound, VersionConflict
-from errors import InvalidFormatFile
 
 
 def should_install_requirement(requirement):
@@ -33,8 +31,8 @@ def install_packages(requirement_list):
     except Exception as e:
         print(e)
 
-def get_exantension(file):
 
+def get_exentension(file):
     step = file.split('.')
     if len(step) < 2:
         return None
@@ -42,4 +40,28 @@ def get_exantension(file):
     return '.'.join(step[1:len(step)])
 
 
+def unzip_file_zip(file, dest='.'):
+    dest_abspath = os.path.abspath(dest)
+    verbose = ''
+    with zipfile.ZipFile(file, 'r') as zip:
+        verbose = zip.filelist
+        zip.extractall(dest_abspath)
 
+    return verbose
+
+
+def unzip_file_targz(file, dest='.'):
+    dest_abspath = os.path.abspath(dest)
+
+    tar = tarfile.open(file, 'r:gz')
+    tar.extractall(dest_abspath)
+
+    tar.close()
+    return tar.tarinfo
+
+
+def unzip_file(file, ext, dest='.'):
+    if ext == 'tar.gz':
+        unzip_file_targz(file, dest)
+    elif ext == "zip":
+        unzip_file_zip(file, dest)

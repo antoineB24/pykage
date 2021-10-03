@@ -1,8 +1,13 @@
+import sys
+import data
 import requests
 import bs4
 import os
-from errors import UrlNotFound, SiteError, MultiplePackageFound, PackageNotFound
-from system import get_exantension
+import animation
+from .errors import UrlNotFound, SiteError, MultiplePackageFound, PackageNotFound
+from .system import get_exentension, unzip_file
+import time
+
 
 URL_SIMPLE_PYPI = "https://pypi.org/simple/"
 URL_PYPI = "https://pypi.org/"
@@ -43,37 +48,38 @@ def get_module_url_src(name_module):
 
 
 def install_module(module_name, path_pkg):
+    print('install package: %s' % module_name)
     path = os.path.abspath(path_pkg)
     module_src = get_module_url_src(module_name)
-
     list_src = get_all_url(module_src["href"])
     zipped = []
-    ext_poss = ["zip", "tar.gz"]
+
     for src in list_src:
-        ext = get_exantension(src["text"])
+        ext = get_exentension(src["text"])
         if ext.find('.tar.gz') != -1:
-            zipped.append({**src, "ext" : "tar.gz"})
+            zipped.append({**src, "ext": "tar.gz"})
         elif ext.find('.zip') != -1:
             zipped.append({**src, "ext": "zip"})
 
-    #print(zipped)
-    first_z = zipped[-1]
-    os.system(f"curl {first_z['href']} > {path}/{first_z['text']}")
-    os.system(f"tar -xzvf {path}/{first_z['text']}")
-    #os.system(f"mv {path}/{first_z['text']} {path}/{'-'.join(first_z['text'].split('.')[:-1])}")
-    print(first_z['text'])
+    # print(zipped)
+    first_z = zipped[-1] # take the last version
     if first_z["ext"] == "zip":
-        os.system(f"cd {first_z['text'][:-4]}; pip install .")
+        name = first_z['text'][:-4]
     elif first_z["ext"] == "tar.gz":
-        os.system(f"cd {first_z['text'][:-7]}; pip install .")
+        name = first_z['text'][:-7]
+
+    res_file = requests.get(first_z['href'], stream=True)
+    with open(f'{path}/{first_z["text"]}', 'wb') as file:
+        file.write(res_file.raw.read())
+
+    unzip_file(f"{path}/{first_z['text']}", first_z['ext'], path)
+    if first_z["ext"] in ["zip", "tar.gz"]:
+        os.system(f"cd {path}/{name}; pip install . ")
 
 
-
-
-
-
-
-
-
+def install_multiple_module(path_pkg, *list_module):
+    print("install multiple module: %s", ','.join(list_module))
+    for i in list_module:
+        install_module(i, path_pkg)
 
 
