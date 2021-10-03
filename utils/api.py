@@ -67,7 +67,7 @@ def install_module(module_name, path_pkg):
     elif first_z["ext"] == "tar.gz":
         os.system(f"cd {first_z['text'][:-7]}; pip install .")
 
-install_module("pandas", ".")
+
 
 
 
