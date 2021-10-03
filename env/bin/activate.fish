@@ -29,7 +29,7 @@ end
 # Unset irrelevant variables.
 deactivate nondestructive
 
-set -gx VIRTUAL_ENV "/Users/macbook/Documents/PythonProject/pykg/env"
+set -gx VIRTUAL_ENV "/Users/antoine/Documents/python_project/pykg/env"
 
 set -gx _OLD_VIRTUAL_PATH $PATH
 set -gx PATH "$VIRTUAL_ENV/bin" $PATH
