@@ -3,7 +3,6 @@ import data
 import requests
 import bs4
 import os
-import animation
 from .errors import UrlNotFound, SiteError, MultiplePackageFound, PackageNotFound
 from .system import get_exentension, unzip_file
 import time
@@ -60,9 +59,17 @@ def install_module(module_name, path_pkg):
             zipped.append({**src, "ext": "tar.gz"})
         elif ext.find('.zip') != -1:
             zipped.append({**src, "ext": "zip"})
+        elif ext.find('.whl') != -1:
+            zipped.append({**src, "ext" : "whl"})
 
     # print(zipped)
-    first_z = zipped[-1] # take the last version
+    try:
+        first_z = zipped[-1] # take the last version
+    except IndexError:
+        print("no distribution for %s" % module_name)
+        sys.exit(1)
+    else:
+        first_z = zipped[-1]  # take the last version
     if first_z["ext"] == "zip":
         name = first_z['text'][:-4]
     elif first_z["ext"] == "tar.gz":

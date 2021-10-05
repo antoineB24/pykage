@@ -65,3 +65,22 @@ def unzip_file(file, ext, dest='.'):
         unzip_file_targz(file, dest)
     elif ext == "zip":
         unzip_file_zip(file, dest)
+
+
+def get_end_path(path):
+    list_decouped = path.split('/')
+    list_filter = list(filter(bool, list_decouped))
+    return list_filter[-1]
+
+
+def touch_if_no_exists(file):
+    open(file, 'a+').close()
+
+def remove_extension(filename):
+    split_l = filename.split('.')
+
+    if len(split_l) == 0:
+        return filename
+
+    del split_l[-1]
+    return '.'.join(split_l)

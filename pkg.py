@@ -1,11 +1,10 @@
-
-AUTHOR = ''
-PKG_NAME = 'h'
-VERSION = ''
+AUTHOR = 'a'
+PKG_NAME = 'test'
+VERSION = '1.0.0'
 EMAIL = ''
 DEFAULT_FILE = ''
-PACKAGE = []
+PACKAGE = ['numpy']
 LIST_FILE = []
 DESCRIPTION = ''
 GIT_REPO = ''
-PWD = '/Users/macbook/Documents/PythonProject/pykg'  
+PWD = '/Users/antoine/Documents/python_project/pykg'
