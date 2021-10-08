@@ -1,3 +1,0 @@
-click
-requests
-PyGithub==1.53.0

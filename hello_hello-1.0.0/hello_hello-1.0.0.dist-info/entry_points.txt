@@ -1,3 +1,0 @@
-[console_scripts]
-devcon-ex = helloworld.helloworld:hello_world
-

@@ -5,6 +5,20 @@ import zipfile
 import tarfile
 import pkg_resources
 from pkg_resources import DistributionNotFound, VersionConflict
+import pickle
+
+
+def is_install(module):
+    cwd = os.getcwd()
+    new = touch_if_no_exists("pypackages/lpkg.lock", True)
+    if new:
+        writer = open("pypackages/lpkg.lock", "wb")
+        pickle.dump([], writer)
+        writer.close()
+    reader = open("pypackages/lpkg.lock", "rb")
+    list_module_installed = pickle.load(reader)
+    reader.close()
+    return module in list_module_installed or should_install_requirement(module)
 
 
 def should_install_requirement(requirement):
@@ -17,19 +31,25 @@ def should_install_requirement(requirement):
 
 
 def install_packages(requirement_list):
-    try:
+
         requirements = [
             requirement
             for requirement in requirement_list
-            if should_install_requirement(requirement)
+            if is_install(requirement)
         ]
         if len(requirements) > 0:
-            subprocess.check_call([sys.executable, "-m", "pip", "install", *requirements])
+            subprocess.check_call([sys.executable, "-m", "pip", "install", "-t" , "pypackages/", *requirements])
         else:
             print("Requirements already satisfied.")
 
-    except Exception as e:
-        print(e)
+        reader = open('pypackages/lpkg.lock', 'rb')
+        list_m = pickle.load(reader)
+        reader.close()
+
+        with open('pypackages/lpkg.lock', 'wb') as w1:
+            pickle.dump(list_m + requirement_list, w1)
+
+
 
 
 def get_exentension(file):
@@ -73,8 +93,14 @@ def get_end_path(path):
     return list_filter[-1]
 
 
-def touch_if_no_exists(file):
+def touch_if_no_exists(file, mode_binary=False):
     open(file, 'a+').close()
+    vide = True
+    mode = 'rb' if mode_binary else 'r'
+    with open(file, mode) as f:
+        if bool(f.read()):
+            vide = False
+    return vide
 
 def remove_extension(filename):
     split_l = filename.split('.')
