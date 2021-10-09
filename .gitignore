@@ -1,3 +1,5 @@
 env/
-pypackages/*
+pypackages/
+utils/__pychache__
+cmd/__pychache__
 

@@ -1,6 +1,6 @@
 
 
-from cmd.init_cmd import init_cmd
+from cmd.init_cmd import  InitCmd
 from cmd.install_cmd import install_cmd
 from cmd.install_args_cmd import install_args_cmd
 from utils.data import get_pkg_path
@@ -8,9 +8,26 @@ import os
 import argparse
 import sys
 
+
+PYKG_LIST_ACTION = (
+    "init",
+    "install",
+    "add",
+    "remove",
+    "run",
+    "settings",
+    "env",
+    "activate",
+    "deactivate"
+)
+
 parser = argparse.ArgumentParser(prog='pykg')
 parser.add_argument('cmd', help='votre cmd', nargs='+')
 parser.add_argument('-pa', '--path', help='path', action="store_true")
+
+init_cmd = InitCmd(parser)
+init_cmd.run()
+
 args = parser.parse_args()
 
 if args.cmd[0] == 'help':
@@ -35,10 +52,6 @@ list cmd:
 optional arguments:
   -h, --help  show this help message and exit
   """)
-
-elif args.cmd[0] == "init":
-    path = args.cmd[1] if len(args.cmd) - 1 else os.getcwd()
-    init_cmd(path)
 elif args.cmd[0] == "install" and len(args.cmd) == 1:
     pkg_path = get_pkg_path()
     install_cmd(pkg_path)
@@ -46,3 +59,10 @@ elif args.cmd[0] == "install" and len(args.cmd) == 1:
 elif args.cmd[0] == "install" and len(args.cmd) > 1:
     pkg_path = get_pkg_path()
     install_args_cmd(pkg_path, args.cmd[1:])
+"""
+elif args.cmd[0] == "init":
+    path = args.cmd[1] if len(args.cmd) - 1 else os.getcwd()
+    init_cmd(path)
+"""
+
+
