@@ -1,13 +1,13 @@
+#! env/bin/python
 
-
-from cmd.init_cmd import  InitCmd
+from cmd.init_cmd import InitCmd
 from cmd.install_cmd import install_cmd
 from cmd.install_args_cmd import install_args_cmd
+from cmd.run_cmd import run_cmd
 from utils.data import get_pkg_path
 import os
-import argparse
+import click
 import sys
-
 
 PYKG_LIST_ACTION = (
     "init",
@@ -21,48 +21,62 @@ PYKG_LIST_ACTION = (
     "deactivate"
 )
 
-parser = argparse.ArgumentParser(prog='pykg')
-parser.add_argument('cmd', help='votre cmd', nargs='+')
-parser.add_argument('-pa', '--path', help='path', action="store_true")
 
-init_cmd = InitCmd(parser)
-init_cmd.run()
+@click.group()
+def cli():
+    pass
 
-args = parser.parse_args()
 
-if args.cmd[0] == 'help':
-    print("""
-usage: main.py  cmd 
+@click.command("help", help="show list cmd ")
+def help_cmd():
+    click.echo("""
+    usage: main.py  cmd 
 
-list cmd:
-  init              create a pkg.py
-  install           installs the dependenses of pkg.py
-  install lib       install with pip and add as expense name_of_module in pkg.py
-  run               execute the python file given in pkg.py (DEFAULT_FILE)
-  run file          execute the python file in pkg.py (LIST_FILE)
-  add file          add file to pkg.py (LIST_FILE)
-  settings var val  add/modify a setting in pkg.py
-  remove file       removes a file in pkg.py (LIST_FILE)
-  env name_env      create an environment with the expenses installed in pkg.py
-  activate          activates the env if the env exists
-  deactivate        deactivates the env if it is activated
+    list cmd:
+      init              create a pkg.py
+      install           installs the dependenses of pkg.py
+      install lib       install with pip and add as expense name_of_module in pkg.py
+      run               execute the python file given in pkg.py (DEFAULT_FILE)
+      run file          execute the python file in pkg.py (LIST_FILE)
+      add file          add file to pkg.py (LIST_FILE)
+      settings var val  add/modify a setting in pkg.py
+      remove file       removes a file in pkg.py (LIST_FILE)
+      env name_env      create an environment with the expenses installed in pkg.py
+      activate          activates the env if the env exists
+      deactivate        deactivates the env if it is activated
 
 
 
-optional arguments:
-  -h, --help  show this help message and exit
-  """)
-elif args.cmd[0] == "install" and len(args.cmd) == 1:
+    optional arguments:
+      -h, --help  show this help message and exit
+      """)
+
+
+@click.command("install", help="install depensie of pkg.py or install depensie of you takes")
+@click.argument("name", nargs=-1)
+def install(name):
     pkg_path = get_pkg_path()
-    install_cmd(pkg_path)
-
-elif args.cmd[0] == "install" and len(args.cmd) > 1:
-    pkg_path = get_pkg_path()
-    install_args_cmd(pkg_path, args.cmd[1:])
-"""
-elif args.cmd[0] == "init":
-    path = args.cmd[1] if len(args.cmd) - 1 else os.getcwd()
-    init_cmd(path)
-"""
+    if len(name) == 0:
+        install_cmd(pkg_path)
+    else:
+        install_args_cmd(pkg_path, name)
 
 
+
+
+@click.command("run", help="execute the python file given in pkg.py (DEFAULT_FILE)")
+@click.option("-p", "--pkg", type=str)
+def run(pkg):
+    path = pkg if pkg else os.getcwd()
+    run_cmd(path)
+
+
+cli.add_command(help_cmd)
+cli.add_command(install)
+#cli.add_command(init)
+cli.add_command(run)
+init_cmd = InitCmd(click, cli)
+init_cmd.build()
+
+if __name__ == '__main__':
+    cli()

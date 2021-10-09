@@ -1,23 +1,29 @@
-from argparse import ArgumentParser
+import abc
 
 
 class Cmd:
-    name = ''
-    help = ""
+    option = []
+    arguments = []
 
-    def __init__(self, argparse: ArgumentParser, **kwargs):
-        self.argparse = argparse
-        self.cmd = False
-        self.data = kwargs
-        self.parser = self.parse()
+    def __init__(self, click_mod, group):
+        self.group = group
+        self.click = click_mod
 
-    def make_parser(self):
-        self.argparse.add_argument(self.name, help=self.help)
+    def recup_info(self, *args, **kwargs):
+        for i in kwargs:
+            setattr(self, i, kwargs[i])
 
-    def parse(self):
-        return self.argparse.parse_args()
+        self.main()
 
-    def run(self):
-        parser = self.parse()
-        if parser.cmd[0] == self.name:
-            self.main(*parser.cmd[1:])
+    @abc.abstractmethod
+    def main(self, *args, **kwargs):
+        pass
+
+    def build(self):
+        self.recup_info = self.click.command(self.name, help=self.help)(self.recup_info)
+        for i in self.option:
+            self.recup_info = self.click.option(**i)(self.main)
+        for a in self.arguments:
+            self.recup_info = self.click.argument(a["name"], **a["option"])(self.main)
+
+        self.group.add_command(self.recup_info)

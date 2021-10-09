@@ -1,10 +1,11 @@
 import sys
 import os
-sys.path.append(os.path.abspath('.'))
 from utils.errors import PKGNotFound  # pkg error when file pkg.py not found
 from utils.system import install_packages
 import utils.tree_ast as tree_ast
 import ast
+
+sys.path.append(os.path.abspath('.'))
 
 
 def install_args_cmd(path_pkg, pkg_list):
@@ -32,6 +33,3 @@ def install_args_cmd(path_pkg, pkg_list):
 
     with open(f'{path_pkg}/pkg.py', 'w') as pkg_w:
         pkg_w.write(tree_ast.make_source_from_ast(tree))
-
-
-

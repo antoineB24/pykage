@@ -1,4 +1,4 @@
-#!/Users/antoine/Documents/python_project/pykg/env/bin/python3.9
+#!/Users/antoine/Documents/python_project/pykg/env/bin/python3
 # EASY-INSTALL-ENTRY-SCRIPT: 'cx-Freeze==6.8','console_scripts','cxfreeze-quickstart'
 import re
 import sys
