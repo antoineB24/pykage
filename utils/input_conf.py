@@ -1,17 +1,17 @@
-from prompt_toolkit import print_formatted_text, HTML
-from prompt_toolkit.validation import Validator, ValidationError
-from prompt_toolkit import prompt
-from prompt_toolkit.styles import Style
+from PyInquirer import style_from_dict, Token, prompt
+from PyInquirer import Validator, ValidationError
 import string
 from .regex import REGEX_EMAIL, REGEX_GIT_PROJECT, REGEX_VERSION_NUMBER, REGEX_FILE_PY
 import re
 
 
-
 def get_style():
-    return Style.from_dict({
-        'question': '#0348FF bold',
-        'responce': '#03A0FF'
+    return style_from_dict({
+        Token.QuestionMark: '#E91E63 bold',
+        Token.Selected: '#673AB7 bold',
+        Token.Instruction: '',  # default
+        Token.Answer: '#2196f3 bold',
+        Token.Question: '',
     })
 
 
@@ -55,22 +55,9 @@ def validate(label, function, status, initial_value):
 class InputStyle:
     style = get_style()
     form = []
-    res = type('Res', (), {})
-
-    def add_question(self, name, label, validate: Validator):
-        self.form.append({'name': name,
-                          'question': HTML(f'<question>{label}</question>'),
-                          'responce': '',
-                          'validate' : validate
-                          })
 
     def render(self):
-
-        for i in self.form:
-            i["responce"] = prompt(i["question"], style=self.style, validator=i["validator"])
-            setattr(self.res, i["name"], i["responce"])
-
-
+        return prompt(self.form, style=self.style)
 
 
 class ValidateRequired(Validator):

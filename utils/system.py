@@ -31,25 +31,22 @@ def should_install_requirement(requirement):
 
 
 def install_packages(requirement_list):
+    requirements = [
+        requirement
+        for requirement in requirement_list
+        if is_install(requirement)
+    ]
+    if len(requirements) > 0:
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "-t", "pypackages/", *requirements])
+    else:
+        print("Requirements already satisfied.")
 
-        requirements = [
-            requirement
-            for requirement in requirement_list
-            if is_install(requirement)
-        ]
-        if len(requirements) > 0:
-            subprocess.check_call([sys.executable, "-m", "pip", "install", "-t" , "pypackages/", *requirements])
-        else:
-            print("Requirements already satisfied.")
+    reader = open('pypackages/lpkg.lock', 'rb')
+    list_m = pickle.load(reader)
+    reader.close()
 
-        reader = open('pypackages/lpkg.lock', 'rb')
-        list_m = pickle.load(reader)
-        reader.close()
-
-        with open('pypackages/lpkg.lock', 'wb') as w1:
-            pickle.dump(list_m + requirement_list, w1)
-
-
+    with open('pypackages/lpkg.lock', 'wb') as w1:
+        pickle.dump(list_m + requirement_list, w1)
 
 
 def get_exentension(file):
@@ -102,6 +99,7 @@ def touch_if_no_exists(file, mode_binary=False):
             vide = False
     return vide
 
+
 def remove_extension(filename):
     split_l = filename.split('.')
 
@@ -110,3 +108,7 @@ def remove_extension(filename):
 
     del split_l[-1]
     return '.'.join(split_l)
+
+
+def list_to_list_abspath(list):
+    return [os.path.abspath(i) for i in list]

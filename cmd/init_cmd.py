@@ -122,3 +122,37 @@ class Ok(InputStyle):
         ]
     }]
 
+
+def init_cmd(path_pkg):
+    path = path_pkg if bool(path_pkg) else os.getcwd()
+    print('pykg init... \n')
+    print('configuration : \n\n ')
+
+    form = Form()
+    dict_ = form.render()
+    if bool(dict_):
+        struct = dict_to_namedtuple(dict_)
+        content = f'''
+                    AUTHOR = '{struct.author}'
+                    PKG_NAME = '{struct.project_name}'
+                    VERSION = '{struct.version}'
+                    EMAIL = '{struct.email}'
+                    DEFAULT_FILE = '{struct.main_file}'
+                    PACKAGE = []
+                    LIST_FILE = []
+                    DESCRIPTION = '{struct.description}'
+                    GIT_REPO = '{struct.git_repo}'
+                    PWD = '{os.path.abspath(path)}'  '''
+
+        print("\n\n")
+        print(content)
+        ok = Ok()
+        res = ok.render()
+        if res:
+            if res['ok'] == 'No':
+                init_cmd(path)
+            else:
+                os.system(f'touch {path}/pkg.py')
+            file = open(f'{path}/pkg.py', 'w')
+            file.write(content)
+            file.close()

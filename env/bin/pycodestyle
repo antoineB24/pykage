@@ -1,4 +1,4 @@
-#!/Users/antoine/Documents/python_project/pykg/env/bin/python3
+#!/Users/antoine/Documents/python_project/pykg/env/bin/python
 # -*- coding: utf-8 -*-
 import re
 import sys
