@@ -28,7 +28,7 @@ class AddCmd(Cmd):
 
     def main(self):
         path = self.pkg if self.pkg else os.path.join(os.getcwd(), 'pkg.py')
-        list_file = list_to_list_abspath(self.list_file)
+        list_file = list_to_list_abspath(self.files)
         with open(path) as pkg_reader:
             content = pkg_reader.read()
 
