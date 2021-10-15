@@ -112,3 +112,9 @@ def remove_extension(filename):
 
 def list_to_list_abspath(list):
     return [os.path.abspath(i) for i in list]
+
+
+def get_end_abspath(path):
+    step = path.split("\\")
+    list_filter = list(filter(bool, step))
+    return list_filter[-1]

@@ -1,6 +1,15 @@
 import abc
 
 
+def yad(decorators):
+    def decorator(f):
+        for d in reversed(decorators):
+            f = d(f)
+        return f
+
+    return decorator
+
+
 class Callable(object):
     def __init__(self, f):
         self.f = f
@@ -13,6 +22,7 @@ class Callable(object):
 def wrap_for_cython(f):
     return Callable(f)
 
+
 class Cmd:
     option = []
     arguments = []
@@ -21,21 +31,26 @@ class Cmd:
         self.group = group
         self.click = click_mod
 
-    def recup_info(self, *args, **kwargs):
-        for i in kwargs:
-            setattr(self, i, kwargs[i])
-
-        self.main()
-
     @abc.abstractmethod
-    def main(self, *args, **kwargs):
+    def main(self):
         pass
 
     def build(self):
-        self.recup_info = self.click.command(self.name, help=self.help)(self.recup_info)
+        option = []
+        argument = []
         for i in self.option:
-            self.recup_info = self.click.option(**i)(self.main)
-        for a in self.arguments:
-            self.recup_info = self.click.argument(a["name"], **a["option"])(self.main)
-        self.recup_info = wrap_for_cython(self.recup_info)
-        self.group.add_command(self.recup_info)
+            option.append(self.click.option(*i["name"], **i["option"]))
+
+        for c in self.arguments:
+            argument.append(self.click.argument(c["name"], **c["option"]))
+
+        @self.click.command(self.name, help=self.help)
+        @yad(option)
+        @yad(argument)
+        def main(*args, **kwargs):
+            for i in kwargs:
+                setattr(self, i, kwargs[i])
+            self.main()
+
+        self.group.add_command(main)
+        return main

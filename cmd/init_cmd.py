@@ -38,16 +38,16 @@ class InitCmd(Cmd):
         if bool(dict_):
             struct = dict_to_namedtuple(dict_)
             content = f'''
-                AUTHOR = '{struct.author}'
-                PKG_NAME = '{struct.project_name}'
-                VERSION = '{struct.version}'
-                EMAIL = '{struct.email}'
-                DEFAULT_FILE = '{struct.main_file}'
-                PACKAGE = []
-                LIST_FILE = []
-                DESCRIPTION = '{struct.description}'
-                GIT_REPO = '{struct.git_repo}'
-                PWD = '{os.path.abspath(path)}'  '''
+                            AUTHOR = '{struct.author}'
+                            PKG_NAME = '{struct.project_name}'
+                            VERSION = '{struct.version}'
+                            EMAIL = '{struct.email}'
+                            DEFAULT_FILE = '{struct.main_file}'
+                            PACKAGE = []
+                            LIST_FILE = []
+                            DESCRIPTION = '{struct.description}'
+                            GIT_REPO = '{struct.git_repo}'
+                            PWD = '{os.path.abspath(path)}'  '''
 
             print("\n\n")
             print(content)
