@@ -54,3 +54,9 @@ class Cmd:
 
         self.group.add_command(main)
         return main
+
+
+def load_cmd(click, group, cmd):
+    for Object in cmd:
+        obj = Object(click, group)
+        obj.build()
