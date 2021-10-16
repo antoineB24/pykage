@@ -14,3 +14,6 @@ class SiteError(NameError): pass
 
 
 class InvalidFormatFile(SyntaxError): pass
+
+
+class InvalidTypeAst(TypeError): pass

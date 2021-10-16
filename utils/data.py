@@ -1,6 +1,7 @@
+import collections
 import sys
 import os
-
+from collections import namedtuple
 
 TIME_API_GET_SRC_MODULE = 49.047829816000004
 
@@ -17,3 +18,7 @@ def get_pkg_path():
         else:
             pkg_path = os.environ["PKG_PATH"]
     return pkg_path
+
+
+def dict_to_namedtuple(d: dict):
+    return namedtuple('GenericDict', d.keys())(**d)

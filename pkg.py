@@ -1,11 +1,10 @@
-
-AUTHOR = ''
-PKG_NAME = 'h'
-VERSION = ''
-EMAIL = ''
+AUTHOR = 'antoine'
+PKG_NAME = 'pykg'
+VERSION = '1.0.0'
+EMAIL = 'tonio.barbier@gmail.com'
 DEFAULT_FILE = ''
 PACKAGE = []
-LIST_FILE = []
+LIST_FILE = ['/Users/antoine/Documents/python_project/pykg/cmd/init_cmd.py']
 DESCRIPTION = ''
 GIT_REPO = ''
-PWD = '/Users/macbook/Documents/PythonProject/pykg'  
+PWD = '/Users/antoine/Documents/python_project/pykg'

@@ -1,3 +1,19 @@
+from PyInquirer import style_from_dict, Token, prompt
+from PyInquirer import Validator, ValidationError
+import string
+from .regex import REGEX_EMAIL, REGEX_GIT_PROJECT, REGEX_VERSION_NUMBER, REGEX_FILE_PY
+import re
+
+
+def get_style():
+    return style_from_dict({
+        Token.QuestionMark: '#E91E63 bold',
+        Token.Selected: '#673AB7 bold',
+        Token.Instruction: '',  # default
+        Token.Answer: '#2196f3 bold',
+        Token.Question: '',
+    })
+
 
 def validate(label, function, status, initial_value):
     """
@@ -34,3 +50,84 @@ def validate(label, function, status, initial_value):
         value = input(f"{label}({status}): ")
 
     return value
+
+
+class InputStyle:
+    style = get_style()
+    form = []
+
+    def render(self):
+        return prompt(self.form, style=self.style)
+
+
+class ValidateRequired(Validator):
+
+    def validate(self):
+        document = self
+
+        if not bool(document.text):
+            raise ValidationError(
+                message=f"is required",
+                cursor_position=len(self.text)
+            )
+
+
+class ValidateOptionel(Validator):
+
+    def validate(self, **kwargs):
+        document = self
+        if bool(document.text):
+            if not all([i in string.ascii_letters + string.digits for i in document.text]):
+                raise ValidationError(
+                    message=f"{document.text} is bad format",
+                    cursor_position=len(document.text)
+                )
+
+
+class ValidateEmail(Validator):
+
+    def validate(self):
+        document = self
+        if bool(document.text):
+            if not re.match(REGEX_EMAIL, document.text):
+                raise ValidationError(
+                    message=f"{document.text} is bad format(format do be email)",
+                    cursor_position=len(document.text)
+                )
+
+
+class ValidateGit(Validator):
+
+    def validate(self):
+        document = self
+
+        if bool(document.text):
+            if not re.match(REGEX_GIT_PROJECT, document.text):
+                raise ValidationError(
+                    message=f"{document.text} is bad format(format do be git project)",
+                    cursor_position=len(document.text)
+                )
+
+
+class ValidateVersion(Validator):
+
+    def validate(self):
+        document = self
+        if bool(document.text):
+            if not re.match(REGEX_VERSION_NUMBER, document.text):
+                raise ValidationError(
+                    message=f"{document.text} is bad format(format do be version)",
+                    cursor_position=len(document.text)
+                )
+
+
+class ValidateFilePy(Validator):
+
+    def validate(self):
+        document = self
+        if bool(document.text):
+            if not re.match(REGEX_FILE_PY, document.text):
+                raise ValidationError(
+                    message=f"{document.text} is bad format(format do be file py)",
+                    cursor_position=len(document.text)
+                )
