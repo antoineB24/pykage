@@ -1,9 +1,11 @@
 import sys
-import os
+import os, sh
 from errors.errors_pack import PKGNotFound
 import files.tree_ast as tree_ast
+from files.file import touch_if_no_exists
 import pkg_resources
 from pkg_resources import DistributionNotFound, VersionConflict
+from .api import install_package, install_multiple_package
 import subprocess
 import pickle
 
@@ -17,8 +19,11 @@ def install_and_add_to_pkg(path_pkg, mod):
         raise PKGNotFound(f"pkg file not found ({path_pkg}/pkg.py)")
     else:
         tree = tree_ast.make_tree_ast(body)
-
-    install_packages(mod)
+    # sh.mkdir("pypack")
+    if len(mod) == 1:
+        install_package(mod[0], dest="pypack")
+    else:
+        install_multiple_package(*mod, dest="pypack")
 
     tree_ast.append_list_ast(tree, "PACKAGE", tree_ast.transform_elt_iter_to_type_ast(mod))
 
@@ -27,7 +32,12 @@ def install_and_add_to_pkg(path_pkg, mod):
 
 def install_from_pkg(pkg_path):
     sys.path.append(pkg_path)
-    import pkg
+    try:
+        import pkg
+    except ImportError:
+        raise PKGNotFound("pkg.py not found")
+    else:
+        import pkg
 
     try:
         pkg.PACKAGE
@@ -37,7 +47,7 @@ def install_from_pkg(pkg_path):
     except AssertionError:
         print("PACKAGE do is a list")
     else:
-        install_packages(pkg.PACKAGE)
+        install_multiple_package_2(pkg.PACKAGE)
 
 def is_install(module):
     cwd = os.getcwd()

@@ -19,14 +19,10 @@ def get_end_path(path):
     return list_filter[-1]
 
 
-def touch_if_no_exists(file, mode_binary=False):
+def touch_if_no_exists(file: str, mode_binary: bool=False):
+    new = not os.path.exists(file)
     open(file, 'a+').close()
-    vide = True
-    mode = 'rb' if mode_binary else 'r'
-    with open(file, mode) as f:
-        if bool(f.read()):
-            vide = False
-    return vide
+    return new
 
 
 def remove_extension(filename):
