@@ -5,13 +5,13 @@ import files.tree_ast as tree_ast
 from files.file import touch_if_no_exists
 import pkg_resources
 from pkg_resources import DistributionNotFound, VersionConflict
-from .api import install_package, install_multiple_package
 import subprocess
 import pickle
 
 
 
 def install_and_add_to_pkg(path_pkg, mod):
+    from .api import install_package, install_multiple_package
     try:
         with open(f'{path_pkg}/pkg.py') as pkg_r:
             body = pkg_r.read()
@@ -31,6 +31,7 @@ def install_and_add_to_pkg(path_pkg, mod):
         pkg_w.write(tree_ast.make_source_from_ast(tree))
 
 def install_from_pkg(pkg_path):
+    from .api import install_package, install_multiple_package
     sys.path.append(pkg_path)
     try:
         import pkg
@@ -47,19 +48,16 @@ def install_from_pkg(pkg_path):
     except AssertionError:
         print("PACKAGE do is a list")
     else:
-        install_multiple_package_2(pkg.PACKAGE)
+        install_multiple_package(pkg.PACKAGE)
 
 def is_install(module):
     cwd = os.getcwd()
-    new = touch_if_no_exists("pypackages/lpkg.lock", True)
-    if new:
-        writer = open("pypackages/lpkg.lock", "wb")
-        pickle.dump([], writer)
-        writer.close()
-    reader = open("pypackages/lpkg.lock", "rb")
+    
+    reader = open("pypack/pypack.lock", "rb")
     list_module_installed = pickle.load(reader)
     reader.close()
-    return module in list_module_installed or should_install_requirement(module)
+
+    return module in list_module_installed or not should_install_requirement(module)
 
 
 def should_install_requirement(requirement):
@@ -72,6 +70,7 @@ def should_install_requirement(requirement):
 
 
 def install_packages(requirement_list):
+    
     requirements = [
         requirement
         for requirement in requirement_list

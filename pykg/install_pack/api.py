@@ -11,9 +11,10 @@ from errors.errors_api import UrlNotFound, SiteError
 from errors.errors_pack import MultiplePackageFound, PackageNotFound
 from files.file import get_exentension, touch_if_no_exists
 from system.unzip_file import unzip_file
-from .depensie import get_dependencies_from_module
+from .depensie import is_requirement_important
 from packaging.specifiers import SpecifierSet
 from packaging.requirements import Requirement
+from .install import is_install
 
 
 
@@ -24,6 +25,7 @@ URL_PYPI = "https://pypi.org/"
 
 get_end_ext = lambda h : h.split(".", len(h.split("."))-2)[-1] if list(filter(lambda a:a in["tar", "gz"], h.split("."))) else h.split('.')[-1]
 get_file = lambda h : ".".join(filter(lambda i: i not in ["zip", "tar", "gz"], h.split('.')))
+
 
 
 def get_all_url(sitename, prefix_url='', suffix_url=''):
@@ -73,7 +75,12 @@ def get_version_latest_from_context(list_version: list, spec: SpecifierSet) -> s
 
 def install_package(mod, dest='.', latest=False):
     requirement = Requirement(mod)
+    if requirement.marker:
+        return
     mod = requirement.name
+    if is_install(mod):
+        click.secho("requirement installed: %s" % mod, fg="yellow")
+        return 
     click.secho("install packages: %s" % mod, fg="blue")
     type_ext_pos = ("bdist_wheel", "sdist")
     ext_trans = {}
@@ -84,6 +91,8 @@ def install_package(mod, dest='.', latest=False):
     info = api.getPackageInfoJSON(mod)
     source = info["releases"]
     version_list = list(source.keys())
+    dep = info["info"]["requires_dist"]
+    
     if not bool(requirement.specifier):
         version = "latest"
     else:
@@ -104,6 +113,7 @@ def install_package(mod, dest='.', latest=False):
     type_extension = EXT_BUILD[type_extension]
     type_extension = type_extension if type_extension == "whl" else get_end_ext(file_name)
 
+
     if no_letter(py_v):
         require_python_version = py_v
     else:
@@ -111,7 +121,6 @@ def install_package(mod, dest='.', latest=False):
 
     binary_file = requests.get(url, stream=True)
     click.secho("downloads file:  %s" % file_name, fg="cyan")
-    print(f"{dest}/{mod}.{type_extension}")
     with open(f"{dest}/{mod}.{type_extension}", "wb") as zip:
         total_length = int(binary_file.headers.get('content-length'))
         for chunk in progress.bar(binary_file.iter_content(chunk_size=1024), expected_size=(total_length/1024) + 1): 
@@ -124,12 +133,6 @@ def install_package(mod, dest='.', latest=False):
         click.secho(f"unzip the file: {mod}.{type_extension}", fg="cyan")
         unzip_file(f"{dest}/{mod}.{type_extension}", type_extension, dest)
         sh.rm(f"{dest}/{mod}.{type_extension}")
-        dep = get_dependencies_from_module(mod)
-        if dep:
-            click.secho("install depensie of %s: %s" % (mod, ' '.join(dep)), fg="cyan")
-            for i in dep:
-                install_package(i, dest=dest)
-        
         new = touch_if_no_exists(f"{dest}/pypack.lock")
         if new:
             with open(f'{dest}/pypack.lock', "wb") as pypack_init:
@@ -142,6 +145,13 @@ def install_package(mod, dest='.', latest=False):
         with open(f"{dest}/pypack.lock", "wb") as pypack:
             updated = {**body, filename: mod}
             pickle.dump(updated, pypack)
+        if dep:
+            click.secho("install depensie of %s: %s" % (mod, ' '.join(dep)), fg="cyan")
+            for i in dep:
+                if is_requirement_important(Requirement(i)):
+                    install_package(i, dest=dest)
+        
+       
             
 
 
@@ -160,18 +170,38 @@ def install_multiple_package( *pack, **kwargs):
 
     
 
+class PackageLocation:
+    pypi_json_project_url = "https://pypi.org/pypi/%s/json"
+    def __init__(self, mod, loc=None) -> None:
+        self._mod = mod 
+        if loc:
+            self._url_source = loc 
+            self._url = None
+            res_src = requests.get(self._source)
+            if res_src.status_code == 404:
+                raise UrlNotFound(self._source) from None
+        else:
+            self._url = self.pypi_json_project_url % mod
+            res_pypi = requests.get(self._url)
+            self._url_source = None
+            if res_pypi.status_code == 404:
+                raise PackageNotFound("package not found: %s" % mod)
+        
+        
+    def get_url(self):
+        return self._url
     
+    def get_module(self):
+        return self._mod
+
+    def get_url_source(self):
+        return self._url_source
 
 
+class Depensie:
+    def __init__(self, mod) :
+        self._mod = mod 
 
-    
-
-
-
-    
-
-
-    
     
 
 

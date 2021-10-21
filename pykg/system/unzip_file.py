@@ -22,7 +22,7 @@ def unzip_file_targz(file, dest='.'):
 
     tar = tarfile.open(file, 'r:gz')
     for member in progress.bar(tar.getmembers(), expected_size=len(tar.getmembers())):
-        tar.extract(member=member)
+        tar.extract(member, dest)
     tar.close()
     return tar.tarinfo
 
