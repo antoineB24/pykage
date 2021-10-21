@@ -63,11 +63,16 @@ class PyFile:
     def __init__(self, file) -> None:
         self._file = file 
         self._path = pathlib.Path(self.file)
+        self._python_path = []
         if not re.match(REGEX_FILE_PY, self._file):
             raise UnknowTypeFile("unknow type file: %s" % self._file)
 
     def run(self, *args):
         subprocess.check_call([self.EXECUTABLE_PYTHON, self._file, *args])
+
+    def add_pythonpath(self, path):
+        self._python_path.append(path)
+        os.environ["PYTHONPATH"] += ":" + path
 
     def get_absolute_path(self):
         return self._path.absolute()
