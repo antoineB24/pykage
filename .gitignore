@@ -1,1 +1,12 @@
 env/
+trying/
+__pycache__/
+pykg/__pycache__
+pykg/commands/__pycache__
+pykg/console/__pycache__
+pykg/install_pack/__pycache__
+pykg/data/__pycache__
+pykg/errors/__pycache__
+pykg/files/__pycache__
+pykg/system/__pycache__
+pykg/regex/__pycache__
