@@ -50,23 +50,7 @@ def install_from_pkg(pkg_path):
     else:
         install_multiple_package(pkg.PACKAGE)
 
-def is_install(module):
-    cwd = os.getcwd()
-    
-    reader = open("pypack/pypack.lock", "rb")
-    list_module_installed = pickle.load(reader)
-    reader.close()
 
-    return module in list_module_installed or not should_install_requirement(module)
-
-
-def should_install_requirement(requirement):
-    should_install = False
-    try:
-        pkg_resources.require(requirement)
-    except (DistributionNotFound, VersionConflict):
-        should_install = True
-    return should_install
 
 
 def install_packages(requirement_list):
