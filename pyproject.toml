@@ -17,6 +17,7 @@ sh = "^1.14.2"
 clint = "^0.5.1"
 tqdm = "^4.62.3"
 packaging = "^21.0"
+toml = "^0.10.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"

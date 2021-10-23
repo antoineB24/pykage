@@ -1,6 +1,7 @@
-from command.base_cmd import BaseCommand
-from install_pack.install import install_and_add_to_pkg, install_from_pkg
 import os
+from command.base_cmd import BaseCommand
+from files.pkg_ast import PKG
+from install_pack.install import Package
 
 class InstallCommand(BaseCommand):
     name = "install"
@@ -22,7 +23,15 @@ class InstallCommand(BaseCommand):
     def main(self):
         mod = self.mod
         path_pkg = self.pkg if self.pkg else os.getcwd()
+        pkg = PKG(path_pkg)
+
         if len(mod):
-            install_and_add_to_pkg(path_pkg, mod)
+            list_package = mod
+            pkg.append_list_package(*mod)
+            pkg.save()
         else:
-            install_from_pkg(path_pkg)
+            list_package = pkg.get_list_package()
+
+        for i in list_package:
+            p = Package(i)
+            p.install_module(dest="pypack")
