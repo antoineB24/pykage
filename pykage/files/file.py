@@ -2,9 +2,7 @@ import os
 import sys
 import subprocess
 import pathlib
-from regex.file_re import REGEX_FILE_PY
-from errors.errors_file import UnknowTypeFile
-import re
+
 
 def get_exentension(file):
     step = file.split('.')
@@ -69,6 +67,8 @@ class PyFile:
             raise UnknowTypeFile("unknow type file: %s" % self._file)"""
 
     def run(self, *args):
+        for i in self._python_path :
+            os.environ["PYTHONPATH"] = os.environ["PYTHONPATH"] + ":" + i
         subprocess.check_call([self.EXECUTABLE_PYTHON, self._file, *args])
 
     def add_pythonpath(self, path):
