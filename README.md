@@ -1,4 +1,4 @@
-# **pykg** : l'équivalent de npm(js) en python
+# **pykag** : l'équivalent de npm(js) en python
 
 1.  une copy de npm
 2.  au lieu de package.json il y a pkg.py
