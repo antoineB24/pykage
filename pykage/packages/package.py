@@ -1,68 +1,90 @@
 import sys
 import os, sh
-import files.tree_ast as tree_ast
+from click.termui import secho
 from files.file import touch_if_no_exists
 import pkg_resources
-import subprocess
+import random
 import pickle
 import click
 import requests
-import jk_pypiorgapi
+import time
 from clint.textui import progress
 from errors.errors_pack import PackageNotFound
-from errors.errors_api import UrlNotFound
+from errors.errors_api import UrlNotFound, GitReposteryNotFound
 from system.unzip_file import unzip_file
+from regex.data_re import REGEX_GIT_PROJECT, is_valid_git_project, is_valid_url, get_name_from_git_repostery
 from pkg_resources import DistributionNotFound, VersionConflict
 from packaging.specifiers import SpecifierSet
 from packaging.requirements import Requirement
-
+from git.repo.base import Repo
 
 EXT_BUILD = {"bdist_wheel": "whl", "sdist": ("tar.gz", "zip")}
-get_end_ext = lambda h : h.split(".", len(h.split("."))-2)[-1] if list(filter(lambda a:a in["tar", "gz"], h.split("."))) else h.split('.')[-1]
-get_file = lambda h : ".".join(filter(lambda i: i not in ["zip", "tar", "gz"], h.split('.')))
+get_end_ext = lambda h: h.split(".", len(h.split(".")) - 2)[-1] if list(
+    filter(lambda a: a in ["tar", "gz"], h.split("."))) else h.split('.')[-1]
+get_file = lambda h: ".".join(filter(lambda i: i not in ["zip", "tar", "gz"], h.split('.')))
 
-def get_list_version_latest_from_context(list_version: list, spec: SpecifierSet) -> str:
+
+def get_list_version_latest_from_context(list_version: list, spec: SpecifierSet) -> list:
     return list(spec.filter([*list_version]))
+
 
 def install_package(mod, dest='.'):
     package = Package(mod)
     package.install_module(dest)
 
-def install_multiple_package( *pack, **kwargs):
+
+def install_multiple_package(*pack, **kwargs):
     click.secho("install packages: %s" % ' '.join(pack), fg="blue")
     for i in pack:
         install_package(i, kwargs["dest"])
 
 
-
-    
-
 class PackageLocation:
     pypi_json_project_url = "https://pypi.org/pypi/%s/json"
+
     def __init__(self, mod, loc=None) -> None:
-        self._mod = mod 
-        if loc:
-            self._url_source = loc 
+        self._mod = mod
+        if is_valid_git_project(loc):
+            self._type = "git"
+            self._url_source = loc
             self._url = None
-            res_src = requests.get(self._source)
+            res_src = requests.get(self._url_source)
             if res_src.status_code == 404:
-                raise UrlNotFound(self._source) from None
+                raise GitReposteryNotFound(self._url_source) from None
+            self._data = None
+        elif is_valid_url(loc):
+            self._type = "source"
+            self._url_source = loc
+            self._url = None
+            res_src = requests.get(self._url_source)
+            if res_src.status_code == 404:
+                raise GitReposteryNotFound(self._url_source) from None
+            self._data = None
+            
         else:
+            
+            self._type = "pypi"
             self._url = self.pypi_json_project_url % mod
-            res_pypi = requests.get(self._url)
+            res_pypi  = requests.get(self._url)
             self._url_source = None
             if res_pypi.status_code == 404:
                 raise PackageNotFound("package not found: %s" % mod)
-        
-        
+            self._data = res_pypi.json()
+
     def get_url(self):
         return self._url
-    
+
     def get_module(self):
         return self._mod
 
     def get_url_source(self):
         return self._url_source
+    
+    def get_data(self):
+        return self._data
+    
+    def get_type(self):
+        return self._type
 
 
 class Package:
@@ -84,108 +106,65 @@ class Package:
         except (DistributionNotFound, VersionConflict):
             should_install = True
         return should_install
-        
-    def __init__(self, mod, spec_str='') :
-        self._mod = Requirement(mod+spec_str)
 
-        self._api = jk_pypiorgapi.PyPiOrgAPI()
+    def __init__(self, mod, spec_str=''):
+        if is_valid_git_project(mod) or is_valid_url(mod):
+            self._loc = PackageLocation(None, mod)
+        else:
+            self._loc = PackageLocation(mod)
+
+        
 
     def get_depensie(self):
-        mod_info = self._api.getPackageInfoJSON(self._mod.name)
+        mod_info = self._loc.get_data()
         depensie = mod_info["info"]["requires_dist"]
-        if not depensie:
+        if not depensie :
             return []
         depensie = [Requirement(i) for i in depensie]
-        depensie = list(filter(lambda v: not bool(v.marker) , depensie))
-        
-        return depensie
-    
+        depensie = list(filter(lambda v: not bool(v.marker), depensie))
+        dep = []
+        for i in depensie:
+            dep.extend(self.get_depensie(i))
+
+        return dep
 
     def install_module(self, dest='.'):
-        requirement = self._mod
-        if requirement.marker:
-            return
-        mod = requirement.name
-        if Package.is_install(mod):
-            click.secho("requirement installed: %s" % mod, fg="yellow")
-            return 
-        click.secho("install packages: %s" % mod, fg="blue")
-        api = jk_pypiorgapi.PyPiOrgAPI()
-        info = api.getPackageInfoJSON(mod)
-        source = info["releases"]
-        version_list = list(source.keys())
-        dep = self.get_depensie()
-        
-        if not bool(requirement.specifier):
-            version = "latest"
-        else:
-            spec = requirement.specifier
-            version_list = get_list_version_latest_from_context(source, spec)
-            if not len(version_list):
-                click.secho("available version not found", fg="red")
-                return 
-            version = version_list[-1]
-        if version == "latest":
-            version = version_list[-1]
-        
-        list_src_v = source[version]
-        if len(list_src_v) == 0:
-            click.secho("no source from version %s of %s" % (version, mod), fg="red")
-            return 1
-        src_v = list_src_v[-1]
-        file_name = src_v["filename"]
-        url = src_v["url"]
-        type_extension = src_v["packagetype"]
-        type_extension = EXT_BUILD[type_extension]
-        type_extension = type_extension if type_extension == "whl" else get_end_ext(file_name)
-
-
-
-        binary_file = requests.get(url, stream=True)
-        click.secho("downloads file:  %s" % file_name, fg="cyan")
-        with open(f"{dest}/{mod}.{type_extension}", "wb") as zip:
-            total_length = int(binary_file.headers.get('content-length'))
-            for chunk in progress.bar(binary_file.iter_content(chunk_size=1024), expected_size=(total_length/1024) + 1): 
-                if chunk:
-                    zip.write(chunk)
-                    zip.flush()
-                
-        
-        if type_extension in ["tar.gz", "zip"]:
-            click.secho(f"unzip the file: {mod}.{type_extension}", fg="cyan")
-            unzip_file(f"{dest}/{mod}.{type_extension}", type_extension, dest)
-            sh.rm(f"{dest}/{mod}.{type_extension}")
-            new = touch_if_no_exists(f"{dest}/pypack.lock")
-            if new:
-                with open(f'{dest}/pypack.lock', "wb") as pypack_init:
-                    pickle.dump({}, pypack_init)
-            pypack_body = open(f"{dest}/pypack.lock", "rb")
-            body = pickle.load(pypack_body)
-            pypack_body.close()
-            filename = get_file(file_name)
-
-            with open(f"{dest}/pypack.lock", "wb") as pypack:
-                updated = {**body, filename: mod}
-                pickle.dump(updated, pypack)
-            if dep:
-                dep = set(dep)
-                click.secho("install depensie of %s: %s" % (mod, ' '.join([i.name for i in dep])), fg="cyan")
-                
-                for i in dep:
-                    
-                    package = Package(i.name)
-                    package.install_module(dest)
-            
-        
-                
-
-
-            click.secho(f"sucelly install {mod}", fg="green")
-            
-        else:
-            sh.wheel("unpack", f"{dest}/{mod}.{type_extension}")
-            sh.pip("install", f"{dest}/{mod}.{type_extension}")
+        match self._loc.get_type():
+            case "pypi" : self.install_pip_module(dest)
+            case "git" : self.install_git_module(dest)
+            case "source": self.install_source(dest)
+            case _ : click.secho("ERROR" ,fg="red")
     
+    def install_git_module(self, dest="."):
+        if self._loc.get_type == "git":
+            click.secho("install git repostery : %s" % self._loc.get_url_source(), fg="blue")
+            print(click.style("clonning git repostery... ", fg="cyan"), end=" ")
+            Repo.clone_from(self._loc.get_url_source(), dest)
+            click.secho("OK", fg="green")
+            print(click.style("installing...", fg="cyan"), end=" ")
+            sh.cd(get_name_from_git_repostery(self._loc.get_url_source()))
+            sh.pip("install", ".")
+    
+    def install_source(self, dest="."):
+        if self._loc.get_type() == "source":
+            click.secho("install from url source : %s" % self)
+            print(click.style("fetching data...", fg="cyan"), end=" ")
+            time.sleep(random.randint(1, 5))
+            click.secho("OK", fg="green")
+            print(click.style("installing package...", fg="cyan"), end=" ")
+            sh.python3("-m",  "pip", "install", "--index-url",  self._loc.get_url_source(), "--src", dest)
+            click.secho("OK", fg="green")
+
+    def install_pip_module(self, src="."):
+        if self._loc.get_type() == "pypi":
+            sh.pip("install", self._loc.get_module(), "--no-deps", "--src", src)
+            dep = self.get_depensie()
+            click.secho("installing depnsie", fg="cyan")
+            for i in dep:
+                print(click.style("\tinstall %s" % i.name, fg="cyan"), end=" ")
+                sh.pip("install", str(i), "--no-deps", "--src", src)
+                click.secho("OK", fg="green")
+            click.secho("OK", fg="green")
 
 
 """def install_packages(requirement_list):
