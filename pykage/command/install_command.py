@@ -42,7 +42,6 @@ class InstallCommand(BaseCommand):
             list_package = pyproject.get_package_group()
 
             
-        print(list_package)
         for i in list_package:
             if is_valid_url(i) or is_valid_git_project(i):
                 p = Package(i)
