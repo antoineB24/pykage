@@ -130,17 +130,20 @@ class Package:
 
     def install_module(self, dest='.'):
         match self._loc.get_type():
-            case "pypi" : self.install_pip_module(dest)
-            case "git" : self.install_git_module(dest)
+            case "pypi" : 
+                self.install_pip_module(dest)
+            case "git" : 
+                self.install_git_module(dest)
             case "source": self.install_source(dest)
             case _ : click.secho("ERROR" ,fg="red")
     
     def install_git_module(self, dest="."):
-        if self._loc.get_type == "git":
+        if self._loc.get_type() == "git":
             click.secho("install git repostery : %s" % self._loc.get_url_source(), fg="blue")
-            print(click.style("clonning git repostery... ", fg="cyan"), end=" ")
-            Repo.clone_from(self._loc.get_url_source(), dest)
-            click.secho("OK", fg="green")
+            click.secho("clonning git repostery", fg="cyan")
+            sh.cd("pypack/")
+            sh.git("clone", self._loc.get_url_source())
+            click.secho("\rOK", fg="green")
             print(click.style("installing...", fg="cyan"), end=" ")
             sh.cd(get_name_from_git_repostery(self._loc.get_url_source()))
             sh.pip("install", ".")

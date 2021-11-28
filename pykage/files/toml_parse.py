@@ -11,7 +11,6 @@ class PyProject:
         self._dict = self.load()
         if not self.path.exists():
             raise TOMLNotFound("pkg.toml not found")
-        pprint.pprint(self._dict)
 
 
     def load(self):
