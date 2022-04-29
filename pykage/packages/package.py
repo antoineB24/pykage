@@ -89,6 +89,20 @@ class PackageLocation:
 
 class Package:
     @staticmethod
+    def get_depensie(self):
+        mod_info = self._loc.get_data()
+        depensie = mod_info["info"]["requires_dist"]
+        if not depensie :
+            return []
+        depensie = [Requirement(i) for i in depensie]
+        depensie = list(filter(lambda v: not bool(v.marker), depensie))
+        dep = []
+        for i in depensie:
+            dep.extend(Package.get_depensie(i))
+
+        return dep
+    
+    @staticmethod
     def is_install(module):
         cwd = os.getcwd()
         reader = open("pypack/pypack.lock", "rb")
@@ -113,29 +127,16 @@ class Package:
         else:
             self._loc = PackageLocation(mod)
 
-        
-
-    def get_depensie(self):
-        mod_info = self._loc.get_data()
-        depensie = mod_info["info"]["requires_dist"]
-        if not depensie :
-            return []
-        depensie = [Requirement(i) for i in depensie]
-        depensie = list(filter(lambda v: not bool(v.marker), depensie))
-        dep = []
-        for i in depensie:
-            dep.extend(self.get_depensie(i))
-
-        return dep
 
     def install_module(self, dest='.'):
-        match self._loc.get_type():
-            case "pypi" : 
-                self.install_pip_module(dest)
-            case "git" : 
-                self.install_git_module(dest)
-            case "source": self.install_source(dest)
-            case _ : click.secho("ERROR" ,fg="red")
+        if self._loc.get_type() == "pypi":
+            self.install_pip_module(dest)
+        elif self._loc.get_type() == "git":
+            self.install_git_module(dest)
+        elif self._loc.get_type() == "source": 
+            self.install_source(dest)
+        else:
+            click.secho("ERROR" ,fg="red")
     
     def install_git_module(self, dest="."):
         if self._loc.get_type() == "git":
@@ -161,7 +162,7 @@ class Package:
     def install_pip_module(self, src="."):
         if self._loc.get_type() == "pypi":
             sh.pip("install", self._loc.get_module(), "--no-deps", "--src", src)
-            dep = self.get_depensie()
+            dep = Package.get_depensie(self)
             click.secho("installing depnsie", fg="cyan")
             for i in dep:
                 print(click.style("\tinstall %s" % i.name, fg="cyan"), end=" ")
