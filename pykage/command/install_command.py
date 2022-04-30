@@ -1,4 +1,4 @@
-import os
+import pathlib
 from packaging.requirements import Requirement
 from command.base_cmd import BaseCommand
 from packages.package import Package
@@ -24,7 +24,7 @@ class InstallCommand(BaseCommand):
 
     def main(self):
         mod : tuple = self.mod
-        path_pyproject = self.pyproject if self.pyproject else os.getcwd()
+        path_pyproject = self.pyproject if self.pyproject else pathlib.Path().resolve()
         pyproject = PyProject(path_pyproject, True)
 
         if len(mod):
