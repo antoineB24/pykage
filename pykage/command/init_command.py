@@ -1,6 +1,6 @@
 from command.base_cmd import BaseCommand
 from files.init_toml import init_toml
-import os
+import pathlib
 
 class InitCommand(BaseCommand):
 
@@ -15,5 +15,5 @@ class InitCommand(BaseCommand):
     }]
 
     def main(self):
-        path = self.path_pkg if bool(self.path_pkg) else os.getcwd()
+        path = self.path_pkg if bool(self.path_pkg) else pathlib.Path().resolve()
         init_toml(path)
