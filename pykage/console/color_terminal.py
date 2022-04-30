@@ -1,5 +1,5 @@
-
-class bcolors:
+from enum import Enum
+class bcolors(Enum):
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
     OKCYAN = '\033[96m'
