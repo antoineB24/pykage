@@ -15,5 +15,5 @@ class InitCommand(BaseCommand):
     }]
 
     def main(self):
-        path = self.path_pkg if bool(self.path_pkg) else pathlib.Path().resolve()
+        path = self.path_pkg if self.path_pkg else pathlib.Path().resolve()
         init_toml(path)
