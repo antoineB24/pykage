@@ -1,11 +1,11 @@
 import zipfile
 import tarfile
-import os
+import pathlib 
 import click
 from clint.textui import progress
 
 def unzip_file_zip(file, dest='.'):
-    dest_abspath = os.path.abspath(dest)
+    dest_abspath = pathlib.Path(dest).resolve()
     verbose = ''
     with zipfile.ZipFile(file, 'r') as zf:
         for member in progress.bar(zf.infolist(), expected_size=len(zf.infolist())):
@@ -18,7 +18,7 @@ def unzip_file_zip(file, dest='.'):
 
 
 def unzip_file_targz(file, dest='.'):
-    dest_abspath = os.path.abspath(dest)
+    dest_abspath = pathlib.Path(dest).resolve()
 
     tar = tarfile.open(file, 'r:gz')
     for member in progress.bar(tar.getmembers(), expected_size=len(tar.getmembers())):
