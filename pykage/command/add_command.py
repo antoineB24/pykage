@@ -1,4 +1,4 @@
-import os
+import pathlib
 from command.base_cmd import BaseCommand 
 from files.file import list_to_list_abspath
 from files.toml_parse import PyProject
@@ -25,7 +25,7 @@ class AddCommand(BaseCommand):
     }]
 
     def main(self):
-        path = self.pyproject if self.pyproject else os.path.join(os.getcwd(), 'pkg.toml')
+        path = self.pyproject if self.pyproject else (pathlib.Path() / "pkg.toml").resolve()
         list_file = list_to_list_abspath(self.files)
         toml = PyProject(path)
         for i in list_file:
